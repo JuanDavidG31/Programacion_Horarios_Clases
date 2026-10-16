@@ -1,0 +1,66 @@
+<div class="alertas" role="status" aria-live="polite">
+  <div class="alerta alerta--{{ a.tipo }}" *ngFor="let a of alertas">
+    <span>{{ a.texto }}</span>
+    <button type="button" aria-label="Cerrar alerta" (click)="cerrarAlerta(a.id)">×</button>
+  </div>
+</div>
+
+<section class="horario">
+  <header class="horario__encabezado">
+    <h2>Horario semanal</h2>
+    <span class="estado" [class.estado--activo]="conectado">
+      {{ conectado ? 'Conectado' : 'Desconectado' }}
+    </span>
+  </header>
+
+  <p class="reglas">
+    Oferta: lunes a viernes {{ hh(parametros.horaInicio) }}–{{ hh(parametros.horaFin) }},
+    sábados {{ hh(parametros.horaInicio) }}–{{ hh(parametros.sabadoFin) }}.
+    Sin clases de {{ hh(parametros.almuerzoInicio) }} a {{ hh(parametros.almuerzoFin) }}.
+    Sesiones de {{ parametros.duracionSesion }} horas, máximo {{ parametros.maxSesionesSemana }} por curso a la semana.
+    Con 2 o 3 sesiones se prefiere evitar días consecutivos.
+  </p>
+
+  <div class="horario__nuevo">
+    <input #codigo type="text" placeholder="Código (ej. B1)" />
+    <input #curso type="text" placeholder="Curso (ej. Cálculo I)" />
+    <button type="button" (click)="agregar(codigo.value, curso.value); codigo.value = ''">Agregar sesión</button>
+  </div>
+
+  <table class="tabla">
+    <thead>
+    <tr>
+      <th></th>
+      <th *ngFor="let d of dias">{{ d }}</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let h of horas">
+      <th class="tabla__hora">{{ hh(h) }}</th>
+      <td *ngFor="let d of dias"
+          [class.celda--bloqueada]="motivoBloqueo(d, h) !== null"
+          [title]="motivoBloqueo(d, h) ?? ''"
+          (dragover)="permitirSoltar($event)"
+          (drop)="soltar($event, d, h)">
+        <div class="bloque"
+             [class.bloque--aviso]="tieneConsecutivos(b)"
+             *ngFor="let b of bloquesEn(d, h)"
+             draggable="true"
+             (dragstart)="iniciarArrastre(b)">
+          <strong>{{ b.codigo }}</strong> <small>v{{ b.version }}</small>
+          <span class="bloque__detalle">{{ b.curso }}</span>
+          <span class="bloque__detalle">{{ rango(b) }}</span>
+        </div>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  <h3>Historial de acciones</h3>
+  <ul class="historial">
+    <li *ngFor="let a of historial" class="historial__item historial__item--{{ a.tipo }}">
+      <span class="historial__hora">{{ a.hora }}</span> {{ a.texto }}
+    </li>
+    <li *ngIf="historial.length === 0" class="historial__vacio">Aún no hay acciones.</li>
+  </ul>
+</section>
